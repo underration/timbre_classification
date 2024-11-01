@@ -15,3 +15,4 @@ $ .venv\Scripts\activate
 ```
 $ pip install -e .
 ```
+4. 学習データをインポートする
