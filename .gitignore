@@ -1,0 +1,5 @@
+#ignore
+model/
+traindata/
+.venv/
+timble.egg-info/

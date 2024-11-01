@@ -1,0 +1,5 @@
+librosa
+matplotlib
+numpy<2
+scipy
+tensorflow==2.16.1

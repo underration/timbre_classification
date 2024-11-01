@@ -1,0 +1,7 @@
+README.md
+setup.py
+timbre.egg-info/PKG-INFO
+timbre.egg-info/SOURCES.txt
+timbre.egg-info/dependency_links.txt
+timbre.egg-info/requires.txt
+timbre.egg-info/top_level.txt
