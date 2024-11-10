@@ -20,10 +20,10 @@ if gpus:
 
 # 音声ファイルのパスをリストに追加
 audio_data_dir = './traindata/'
-instrument_list = [ 'french horn']
+instrument_list = [ 'french horn', 'trumpet']
 audio_dirs = [os.path.join(audio_data_dir, instrument) for instrument in instrument_list]
 audio_files = [f for audio_dir in audio_dirs for f in os.listdir(audio_dir) if f.endswith('.mp3')]
-
+print(f'audio_files: {audio_files}')
 labels = []
 
 # 強度ラベルを抽出
@@ -50,43 +50,30 @@ spectrograms = []
 labels = []
 max_length = 0
 
-# メルスペクトログラムの最大長を取得
-for audio_dir in audio_dirs:
-	for file_name in os.listdir(audio_dir):
-		if file_name.endswith('.mp3'):
-			file_path = os.path.join(audio_dir, file_name)
-			mel_spectrogram = get_mel_spectrogram(file_path)
-			max_length = max(max_length, mel_spectrogram.shape[1])
-for audio_dir in audio_dirs:
-	for file_name in os.listdir(audio_dir):
-		if file_name.endswith('.mp3'):
-			file_path = os.path.join(audio_dir, file_name)
-			mel_spectrogram = get_mel_spectrogram(file_path)
-			if mel_spectrogram.shape[1] < max_length:
-				pad_width = max_length - mel_spectrogram.shape[1]
-				mel_spectrogram = np.pad(mel_spectrogram, ((0, 0), (0, pad_width)), mode='constant')
-			spectrograms.append(np.expand_dims(mel_spectrogram, axis=-1))
-			labels.append(label_to_int[extract_intensity(file_name)])
-	spectrograms.append(np.expand_dims(mel_spectrogram, axis=-1))
-	labels.append(label_to_int[extract_intensity(file_name)])
-
-spectrograms = np.array(spectrograms)
-labels = np.array(labels)
-
-# メルスペクトログラムを可視化
-def plot_spectrograms(spectrograms, labels, unique_labels, num_to_plot=5):
-	plt.figure(figsize=(10, 10))
-	for i in range(num_to_plot):
-		plt.subplot(num_to_plot, 1, i + 1)
-		spectrogram = spectrograms[i].squeeze()
-		plt.imshow(spectrogram, aspect='auto', origin='lower', extent=[0, spectrogram.shape[1], 0, spectrogram.shape[0]])
-		plt.title(unique_labels[labels[i]])
-		cbar = plt.colorbar(format='%+2.0f dB')
-		cbar.mappable.set_clim(vmin=np.min(spectrogram), vmax=np.max(spectrogram))  # カラーバーの範囲を設定
-		plt.xlim([0, 1100])
-	plt.tight_layout()
-	plt.show()
-	print(spectrogram)
-
-# メルスペクトログラムを可視化
-plot_spectrograms(spectrograms, labels, unique_labels, num_to_plot=5)
+os.makedirs('spectrograms', exist_ok=True)
+# 各ファイルに対して処理を行う
+for file in audio_files:
+	try:
+		instrument_match = re.search(r'(trombone|french horn|trumpet)', file)
+		if instrument_match:
+			instrument = instrument_match.group(1)
+			figure_dir = os.path.join(audio_data_dir, instrument)
+			os.makedirs(f'./spectrograms/{instrument}', exist_ok=True)
+			label = extract_intensity(file)
+			labels.append(label_to_int[label])
+			spectrogram = get_mel_spectrogram(os.path.join(figure_dir, file))
+			if spectrogram is not None:
+				spectrograms.append(spectrogram)
+				max_length = spectrogram.shape[1]
+				# save spectrogram
+				plt.figure(figsize=(10, 4))
+				plt.imshow(spectrogram, origin='lower', aspect='auto')
+				plt.colorbar(format='%+2.0f dB')
+				plt.title(label)
+				plt.tight_layout()
+				plt.savefig(f'./spectrograms/{instrument}/{file}.png')
+				plt.close()
+		else:
+			print(f"楽器名をファイル名 {file} から抽出できませんでした。")
+	except ValueError as e:
+		print(e)

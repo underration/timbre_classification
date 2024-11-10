@@ -39,10 +39,11 @@ def classify_audio(file_path, model):
     
     prediction = model.predict(mel_spectrogram)
     predicted_label = unique_labels[np.argmax(prediction)]
-   
+    print(f"Prediction: {prediction}")
+    print(f"Predicted label: {predicted_label}")
     return predicted_label
 
-test_file_path = './traindata/trombone/trombone_B3_1_pianissimo_normal.mp3'
+test_file_path = './traindata/trombone/trombone_A3_1_forte_normal.mp3'
 
 unique_labels = [
     'mezzo-forte',
@@ -54,5 +55,18 @@ unique_labels = [
 ]  # ラベルのリストを設定
 
 predicted_label = classify_audio(test_file_path, loaded_model)
+# メルスペクトログラムを表示
+plt.figure(figsize=(10, 10))
+num_to_plot = 1  # Define num_to_plot
+spectrograms = [get_mel_spectrogram(test_file_path)]  # Define spectrograms
+labels = [0]  # Define labels
 
-print(f"Predicted label: {predicted_label}")
+for i in range(num_to_plot):
+    spectrogram = spectrograms[i].squeeze()
+    plt.imshow(spectrogram, aspect='auto', origin='lower')
+    plt.title(unique_labels[labels[i]])
+    cbar = plt.colorbar(format='%+2.0f dB')
+    cbar.mappable.set_clim(vmin=np.min(spectrogram), vmax=np.max(spectrogram))  # カラーバーの範囲を設定
+    plt.tight_layout()
+    plt.show()
+    print(spectrogram)
